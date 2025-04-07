@@ -1,0 +1,12 @@
+# Visual Studio stuff
+.vs/
+*.user
+*.suo
+
+# Build
+bin/
+obj/
+
+
+# Config
+appsettings.json
