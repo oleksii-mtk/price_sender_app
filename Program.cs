@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
+using System.Net;
 using ExcelDataReader;
 using Microsoft.Extensions.Configuration;
 
@@ -23,6 +25,22 @@ class Program
 
         string priceFile = GetLatestPriceFile(folderPath);
         Console.WriteLine(priceFile);
+
+        foreach (string email in emails)
+        {
+            try
+            {
+                SendEmailWithAttachment(email, priceFile, emailUser, emailPassword);
+                Console.WriteLine($"Письмо отправлено: {email}");
+                Thread.Sleep(12000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при отправке на {email}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine("Рассылка завершена.");
 
     }
 
@@ -59,5 +77,29 @@ class Program
             }
         }
         return emails;
+    }
+
+    static void SendEmailWithAttachment(string toEmail, string attachmentPath, string emailUser, string emailPass)
+    {
+        var fromAddress = new MailAddress(emailUser, "Alex from NKS13");
+        var toAddress = new MailAddress(toEmail);
+
+        var smtp = new SmtpClient
+        {
+            Host = "smtp.gmail.com",
+            Port = 587,
+            EnableSsl = true,
+            Credentials = new NetworkCredential(emailUser, emailPass)
+        };
+
+        using (var message = new MailMessage(fromAddress, toAddress)
+        {
+            Subject = "Обновлённый прайс-лист",
+            Body = "Добрый день!\n\nВо вложении актуальный прайс-лист.\n\nС уважением,\nNKS13"
+        })
+        {
+            message.Attachments.Add(new Attachment(attachmentPath));
+            smtp.Send(message);
+        }
     }
 }
